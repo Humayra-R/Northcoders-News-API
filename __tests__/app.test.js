@@ -42,3 +42,38 @@ describe('/api/topics', () => {
         .expect(404)
     })
 })
+
+describe('/api/articles/:article_id', () => {
+    test('GET:200 sends one article object to the client', () => {
+        return request(app).get('/api/articles/1')
+        .expect(200)
+        .then(({ body }) => {
+            const { article } = body
+            const [ articleObj ] = article
+
+            expect(articleObj.article_id).toBe(1)
+            
+            expect(Object.keys(articleObj)).toEqual(['article_id', 'title', 'topic', 'author', 'body', 'created_at', 'votes', 'article_img_url'])
+            expect(typeof articleObj.title).toBe('string')
+            expect(typeof articleObj.topic).toBe('string')
+            expect(typeof articleObj.author).toBe('string')
+            expect(typeof articleObj.body).toBe('string')
+            expect(typeof articleObj.created_at).toBe('string')
+            expect(typeof articleObj.article_img_url).toBe('string')
+        })
+    })
+    test('GET:404 sends an appropriate status and error message for a valid but non-existent id', () => {
+        return request(app).get('/api/articles/20')
+        .expect(404)
+        .then(({ body }) => {
+            expect(body.msg).toBe('article does not exist')
+        })
+    })
+    test('GET:400 sends an appropriate status and error message for an invalid id', () => {
+        return request(app).get('/api/articles/invalid_id')
+        .expect(400)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Bad request')
+        })
+    })
+})
