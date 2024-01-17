@@ -1,5 +1,14 @@
-const { responseArticle } = require('../models/article-model')
+const { responseAllArticles, responseArticle } = require('../models/article-model')
 
+function getAllArticles(req, res, next) {
+    responseAllArticles(req, res, next)
+    .then((articles) => {
+        res.status(200).send(articles)
+    })
+    .catch((err) => {
+        next(err)
+    })
+}
 
 function getArticle(req, res, next) {
     const { article_id } = req.params
@@ -13,4 +22,4 @@ function getArticle(req, res, next) {
     })
 }
 
-module.exports = { getArticle }
+module.exports = { getAllArticles, getArticle }

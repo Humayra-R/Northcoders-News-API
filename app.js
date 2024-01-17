@@ -3,13 +3,15 @@ const app = express()
 
 const { getTopics } = require('./controllers/topics-controller')
 const { getAllEndpoints } = require('./controllers/all-endpoints-controller')
-const { getArticle } = require('./controllers/article-controller')
+const { getArticle, getAllArticles } = require('./controllers/article-controller')
 
 app.use(express.json())
 
 app.get('/api', getAllEndpoints)
 
 app.get('/api/topics', getTopics)
+
+app.get('/api/articles', getAllArticles)
 
 app.get('/api/articles/:article_id', getArticle)
 
