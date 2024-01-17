@@ -1,4 +1,4 @@
-const { responseAllArticles, responseArticle, responseComments } = require('../models/article-model')
+const { responseAllArticles, responseArticle, responseComments, insertComment } = require('../models/article-model')
 
 function getAllArticles(req, res, next) {
     responseAllArticles(req, res, next)
@@ -33,4 +33,17 @@ function getComments(req, res, next) {
     })
 } 
 
-module.exports = { getAllArticles, getArticle, getComments }
+function postComment(req, res, next) {
+    const { article_id } = req.params
+    const comment = req.body
+
+    insertComment(comment, article_id)
+    .then((comment) => {
+        res.status(201).send({ comment })
+    })
+    .catch((err) => {
+        next(err)
+    })
+}
+
+module.exports = { getAllArticles, getArticle, getComments, postComment }

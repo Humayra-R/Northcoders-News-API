@@ -51,5 +51,18 @@
         "body": "Replacing the quiet elegance of the dark suit and tie with the casual indifference of these muted earth tones is a form of fashion suicide, but, uh, call me crazy — onyou it works.",
         "article_id": "1"
     }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "add a comment for an article",
+    "queries": [],
+    "exampleResponse": {
+      "comment_id": 19,
+      "body": "Cats are excellent creatures.",
+      "article_id": 1,
+      "author": "Mochi",
+      "votes": 0,
+      "created_at": "2024-01-17T15:41:46.200Z"
+    }
   }
 }
+

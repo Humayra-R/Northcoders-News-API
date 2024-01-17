@@ -44,6 +44,29 @@ describe('/api/topics', () => {
     })
 })
 
+describe('/api/articles', () => {
+    test('GET:200 sends an array of articles to client', () => {
+        return request(app).get('/api/articles')
+        .expect(200)
+        .then(({ body:articles }) => {
+            
+            expect(([ articles ])).toBeSortedBy('date', {descending: true})
+
+            articles.forEach((article) => {
+                expect(article).toHaveProperty('author', expect.any(String))
+                expect(article).toHaveProperty('title', expect.any(String))
+                expect(article).toHaveProperty('article_id', expect.any(Number))
+                expect(article).toHaveProperty('topic', expect.any(String))
+                expect(article).toHaveProperty('created_at', expect.any(String))
+                expect(article).toHaveProperty('votes', expect.any(Number))
+                expect(article).toHaveProperty('article_img_url', expect.any(String))
+                expect(article).toHaveProperty('comment_count', expect.any(String))
+                expect(article).not.toHaveProperty('body')
+            })
+        })
+    })
+})
+
 describe('/api/articles/:article_id', () => {
     test('GET:200 sends one article object to the client', () => {
         return request(app).get('/api/articles/1')
@@ -75,29 +98,6 @@ describe('/api/articles/:article_id', () => {
         .expect(400)
         .then(({ body }) => {
             expect(body.msg).toBe('Bad request')
-        })
-    })
-})
-
-describe('/api/articles', () => {
-    test('GET:200 sends an array of articles to client', () => {
-        return request(app).get('/api/articles')
-        .expect(200)
-        .then(({ body:articles }) => {
-            
-            expect(([ articles ])).toBeSortedBy('date', {descending: true})
-
-            articles.forEach((article) => {
-                expect(article).toHaveProperty('author', expect.any(String))
-                expect(article).toHaveProperty('title', expect.any(String))
-                expect(article).toHaveProperty('article_id', expect.any(Number))
-                expect(article).toHaveProperty('topic', expect.any(String))
-                expect(article).toHaveProperty('created_at', expect.any(String))
-                expect(article).toHaveProperty('votes', expect.any(Number))
-                expect(article).toHaveProperty('article_img_url', expect.any(String))
-                expect(article).toHaveProperty('comment_count', expect.any(String))
-                expect(article).not.toHaveProperty('body')
-            })
         })
     })
 })
@@ -140,6 +140,36 @@ describe('/api/articles/:article_id/comments', () => {
     })
     test('GET:400 sends an appropriate status and error message for an invalid id', () => {
         return request(app).get('/api/articles/invalid_id/comments')
+        .expect(400)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Bad request')
+        })
+    })
+    test('POST:201 inserts a new comment to the db and sends the new comment back to the client', () => {
+        const newComment = {
+            user_name: 'Mochi',
+            body: 'Cats are excellent creatures.'
+        }
+        return request(app).post('/api/articles/1/comments')
+        .send(newComment)
+        .expect(201)
+        .then(({ body }) => {
+            const { comment } = body
+            const [ commentObj ] = comment
+
+            expect(commentObj.article_id).toBe(1)
+            expect(commentObj).toMatchObject({
+                comment_id: 19,
+                body: 'Cats are excellent creatures.',
+                author: 'Mochi'
+            })
+        })
+    })
+    test('POST:400 responds with an appropriate status and error message for bad requests (no username)', () => {
+        return request(app).post('/api/articles/1/comments')
+        .send({
+            body: 'Cougars and caracals.'
+        })
         .expect(400)
         .then(({ body }) => {
             expect(body.msg).toBe('Bad request')

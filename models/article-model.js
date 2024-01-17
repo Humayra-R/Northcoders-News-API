@@ -36,4 +36,19 @@ function responseComments(article_id) {
     })
 }
 
-module.exports = { responseAllArticles, responseArticle, responseComments }
+function insertComment({ user_name, body }, article_id) {
+    if (!user_name) {
+        return Promise.reject({
+            status: 400, msg: 'Bad request'
+        })
+    }
+    return db.query(`ALTER TABLE comments DROP CONSTRAINT comments_author_fkey`)
+    .then(() => {
+        return db.query(`INSERT INTO comments (body, author, article_id) VALUES ($1, $2, $3) RETURNING *`, [body, user_name, article_id])
+    })
+    .then(({ rows }) => {
+        return rows
+    })
+}
+
+module.exports = { responseAllArticles, responseArticle, responseComments, insertComment }
