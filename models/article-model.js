@@ -23,4 +23,17 @@ function responseArticle(article_id) {
 })
 }
 
-module.exports = { responseAllArticles, responseArticle }
+function responseComments(article_id) {
+    return db.query(`SELECT comment_id, comments.votes, comments.created_at, comments.author, comments.body, comments.article_id, articles.article_id FROM articles LEFT JOIN comments ON comments.article_id = articles.article_id WHERE articles.article_id = $1 ORDER BY comments.created_at DESC`, [article_id])
+    .then(({ rows }) => {
+        if (rows.length === 0) {
+            return Promise.reject({ status:404, msg: 'article does not exist' })
+        }
+        if (rows[0].comment_id === null) {
+            return { msg: 'no comments found' }
+        }
+        return rows
+    })
+}
+
+module.exports = { responseAllArticles, responseArticle, responseComments }
