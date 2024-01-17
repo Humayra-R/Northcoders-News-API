@@ -101,3 +101,48 @@ describe('/api/articles', () => {
         })
     })
 })
+
+describe('/api/articles/:article_id/comments', () => {
+    test('GET:200 sends an array of comments for the given article id', () => {
+        return request(app).get('/api/articles/1/comments')
+        .expect(200)
+        .then(({ body }) => {
+            const { comments } = body
+
+            expect(comments).toBeSortedBy('created_at', {descending: true, coerce: true})
+            expect(comments.length).toBe(11)
+            
+            comments.forEach((comment) => {
+                expect(comment).toHaveProperty('comment_id', expect.any(Number))
+                expect(comment).toHaveProperty('votes', expect.any(Number))
+                expect(comment).toHaveProperty('created_at', expect.any(String))
+                expect(comment).toHaveProperty('author', expect.any(String))
+                expect(comment).toHaveProperty('body', expect.any(String))
+                expect(comment).toHaveProperty('article_id', expect.any(Number))
+            })
+        })
+    })
+    test('GET:200 sends an appropriate message when article_id does not have any comments', () => {
+        return request(app).get('/api/articles/7/comments')
+        .expect(200)
+        .then(({ body }) => {
+            const { comments } = body
+            expect(comments.msg).toBe('no comments found')
+        })
+        
+    })
+    test('GET:404 sends an appropriate status and error message for a valid but non-existent id', () => {
+        return request(app).get('/api/articles/100/comments')
+        .expect(404)
+        .then(({ body }) => {
+            expect(body.msg).toBe('article does not exist')
+        })
+    })
+    test('GET:400 sends an appropriate status and error message for an invalid id', () => {
+        return request(app).get('/api/articles/invalid_id/comments')
+        .expect(400)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Bad request')
+        })
+    })
+})
