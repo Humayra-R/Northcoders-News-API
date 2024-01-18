@@ -1,4 +1,4 @@
-const { responseAllArticles, responseArticle, responseComments, insertComment } = require('../models/article-model')
+const { responseAllArticles, responseArticle, updateArticle, responseComments, insertComment } = require('../models/article-model')
 
 function getAllArticles(req, res, next) {
     responseAllArticles(req, res, next)
@@ -16,6 +16,20 @@ function getArticle(req, res, next) {
     responseArticle(article_id)
     .then((article) => {
         res.status(200).send({ article })
+    })
+    .catch((err) => {
+        next(err)
+    })
+}
+
+function patchArticle(req, res, next) {
+    const { article_id } = req.params
+    const  inc_votes  = req.body
+
+    updateArticle(inc_votes, article_id)
+    .then((updatedArticle) => {
+        
+        res.status(200).send( { updatedArticle })
     })
     .catch((err) => {
         next(err)
@@ -46,4 +60,4 @@ function postComment(req, res, next) {
     })
 }
 
-module.exports = { getAllArticles, getArticle, getComments, postComment }
+module.exports = { getAllArticles, getArticle, patchArticle, getComments, postComment }

@@ -23,6 +23,20 @@ function responseArticle(article_id) {
 })
 }
 
+function updateArticle({ inc_votes }, article_id) {
+    
+    if (!inc_votes) {
+        return Promise.reject({status: 400, msg: "Bad request"})
+    }
+    return db.query(`UPDATE articles SET votes = votes + $1 WHERE article_id = $2 RETURNING *`, [inc_votes, article_id])
+    .then(({rows}) => {
+        if (rows.length === 0) {
+            return Promise.reject({status:400, msg: "Bad request"})
+        }
+        return rows
+    })
+}
+
 function responseComments(article_id) {
     return db.query(`SELECT comment_id, comments.votes, comments.created_at, comments.author, comments.body, comments.article_id, articles.article_id FROM articles LEFT JOIN comments ON comments.article_id = articles.article_id WHERE articles.article_id = $1 ORDER BY comments.created_at DESC`, [article_id])
     .then(({ rows }) => {
@@ -51,4 +65,4 @@ function insertComment({ user_name, body }, article_id) {
     })
 }
 
-module.exports = { responseAllArticles, responseArticle, responseComments, insertComment }
+module.exports = { responseAllArticles, responseArticle, updateArticle, responseComments, insertComment }
