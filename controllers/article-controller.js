@@ -1,4 +1,5 @@
 const { responseAllArticles, responseArticle, updateArticle, responseComments, insertComment } = require('../models/article-model')
+const { checkUser } = require('../models/utils/users-util')
 
 function getAllArticles(req, res, next) {
     responseAllArticles(req, res, next)
@@ -38,6 +39,7 @@ function patchArticle(req, res, next) {
 
 function getComments(req, res, next) {
     const { article_id } = req.params
+
     responseComments(article_id)
     .then((comments) => {
         res.status(200).send({ comments })
@@ -48,11 +50,16 @@ function getComments(req, res, next) {
 } 
 
 function postComment(req, res, next) {
+   
     const { article_id } = req.params
     const comment = req.body
 
-    insertComment(comment, article_id)
-    .then((comment) => {
+    const articleCheck = responseArticle(article_id)
+    const userQuery = checkUser(comment)
+    const uploadComment = insertComment(comment, article_id)
+    Promise.all([uploadComment, userQuery, articleCheck])
+    .then((result) => {
+        const comment = result[0]
         res.status(201).send({ comment })
     })
     .catch((err) => {

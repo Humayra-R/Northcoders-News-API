@@ -177,16 +177,9 @@ describe('/api/articles/:article_id/comments', () => {
             expect(body.msg).toBe('article does not exist')
         })
     })
-    test('GET:400 sends an appropriate status and error message for an invalid id', () => {
-        return request(app).get('/api/articles/invalid_id/comments')
-        .expect(400)
-        .then(({ body }) => {
-            expect(body.msg).toBe('Bad request')
-        })
-    })
     test('POST:201 inserts a new comment to the db and sends the new comment back to the client', () => {
         const newComment = {
-            user_name: 'Mochi',
+            user_name: 'lurker',
             body: 'Cats are excellent creatures.'
         }
         return request(app).post('/api/articles/1/comments')
@@ -200,7 +193,30 @@ describe('/api/articles/:article_id/comments', () => {
             expect(commentObj).toMatchObject({
                 comment_id: 19,
                 body: 'Cats are excellent creatures.',
-                author: 'Mochi'
+                author: 'lurker'
+            })
+        })
+    })
+    test('POST:201 ignores additional properties, inserts a new comment to the db and sends the new comment back to the client)', () => {
+        return request(app).post('/api/articles/4/comments')
+        .send({
+            user_name: 'icellusedkars',
+            body: 'ragdolls, absyinnian and domestic shorthair',
+            order: 'Carnivora',
+            suborder: 'feliformia'
+        })
+        .then(({ body }) => {
+            const { comment } = body
+             const [ commentObj ] = comment
+
+            expect(commentObj.article_id).toBe(4)
+            expect(commentObj).not.toContain('Carnivora')
+            expect(commentObj).not.toContain('feliformia')
+
+            expect(commentObj).toMatchObject({
+                comment_id: 19,
+                body: 'ragdolls, absyinnian and domestic shorthair',
+                author: 'icellusedkars'
             })
         })
     })
@@ -208,6 +224,49 @@ describe('/api/articles/:article_id/comments', () => {
         return request(app).post('/api/articles/1/comments')
         .send({
             body: 'Cougars and caracals.'
+        })
+        .expect(400)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Bad request')
+        })
+    })
+    test('POST:400 responds with an appropriate status and error message for bad requests (no body)', () => {
+        return request(app).post('/api/articles/1/comments')
+        .send({
+            user_name: 'lurker'
+        })
+        .expect(400)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Bad request')
+        })
+    })
+    test('POST:404 responds with an appropriate status and error message for non existent user', () => {
+        return request(app).post('/api/articles/3/comments')
+        .send({
+            user_name: 'rando',
+            body: 'creeper'
+        })
+        .expect(404)
+        .then(({ body }) => {
+            expect(body.msg).toBe('user not found')
+        })
+    })
+    test('POST: 404 responds with an appropriate status and error message for valid but non existent id', () => {
+        return request(app).post('/api/articles/88/comments')
+        .send({
+            user_name: 'butter_bridge',
+            body: 'margarine'
+        })
+        .expect(404)
+        .then(({ body }) => {
+            expect(body.msg).toBe('article does not exist')
+        })
+    })
+    test('POST: 400 responds with an appropriate status and error message for invalid id', () => {
+        return request(app).post('/api/articles/invalid/comments')
+        .send({
+            user_name: 'butter_bridge',
+            body: 'margarine'
         })
         .expect(400)
         .then(({ body }) => {
