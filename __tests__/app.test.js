@@ -48,10 +48,11 @@ describe('/api/articles', () => {
     test('GET:200 sends an array of articles to client', () => {
         return request(app).get('/api/articles')
         .expect(200)
-        .then(({ body:articles }) => {
+        .then(({ body:articlesObj }) => {
+            const { articles } = articlesObj
             
-            expect(([ articles ])).toBeSortedBy('date', {descending: true})
-
+            expect((articles)).toBeSortedBy('created_at', {descending: true})
+            expect((articles)).toHaveLength(13)
             articles.forEach((article) => {
                 expect(article).toHaveProperty('author', expect.any(String))
                 expect(article).toHaveProperty('title', expect.any(String))
@@ -63,6 +64,61 @@ describe('/api/articles', () => {
                 expect(article).toHaveProperty('comment_count', expect.any(String))
                 expect(article).not.toHaveProperty('body')
             })
+        })
+    })
+    test('GET:200 sends an array of articles to client if query is not provided', () => {
+        return request(app).get('/api/articles?filter =')
+        .expect(200)
+        .then(({ body:articlesObj }) => {
+            const { articles } = articlesObj
+            
+            expect((articles)).toBeSortedBy('created_at', {descending: true})
+            expect((articles)).toHaveLength(13)
+            articles.forEach((article) => {
+                expect(article).toHaveProperty('author', expect.any(String))
+                expect(article).toHaveProperty('title', expect.any(String))
+                expect(article).toHaveProperty('article_id', expect.any(Number))
+                expect(article).toHaveProperty('topic', expect.any(String))
+                expect(article).toHaveProperty('created_at', expect.any(String))
+                expect(article).toHaveProperty('votes', expect.any(Number))
+                expect(article).toHaveProperty('article_img_url', expect.any(String))
+                expect(article).toHaveProperty('comment_count', expect.any(String))
+                expect(article).not.toHaveProperty('body')
+            })
+        })
+    })
+    test('GET:200 sends an array of articles to client filtered by topic', () => {
+        return request(app).get('/api/articles?filter=cats')
+        .expect(200)
+        .then(({ body }) => {
+            const { articles } = body
+           
+            expect(articles).toHaveLength(1)
+            articles.forEach((article) => {
+                expect(article.topic).toContain('cats')
+                expect(article).toHaveProperty('author', expect.any(String))
+                expect(article).toHaveProperty('title', expect.any(String))
+                expect(article).toHaveProperty('article_id', expect.any(Number))
+                expect(article).toHaveProperty('created_at', expect.any(String))
+                expect(article).toHaveProperty('votes', expect.any(Number))
+                expect(article).toHaveProperty('article_img_url', expect.any(String))
+                expect(article).toHaveProperty('comment_count', expect.any(String))
+                expect(article).not.toHaveProperty('body')
+            })
+        })
+    })
+    test('GET: 400 sends an approrpriate status and error message if filter query is invalid', () => {
+        return request(app).get('/api/articles?filter=30')
+        .expect(400)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Bad request')
+        })
+    })
+    test('GET:404 responds with an appropriate status and error message when topic is valid does not have associated articles', () => {
+        return request(app).get('/api/articles?filter=paper')
+        .expect(404)
+        .then(({ body }) => {
+            expect(body.msg).toBe('no article found')
         })
     })
 })

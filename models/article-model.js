@@ -1,12 +1,19 @@
 const db = require('../db/connection')
 
-function responseAllArticles(res, req, next) {
+function responseAllArticles(filter = null) {
     
-    return db.query(`SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id) AS comment_count FROM articles
-    LEFT JOIN comments ON comments.article_id = articles.article_id
-    GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
+    let queryStr = `SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id) AS comment_count FROM articles LEFT JOIN comments ON comments.article_id = articles.article_id `
+ 
+   const paramArr = []
+    if (filter) {
+        queryStr += `WHERE topic = $1 `
+        paramArr.push(filter)
+    }
+
+    queryStr += `GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
     ORDER BY articles.created_at DESC`
-    )
+
+    return db.query(queryStr, paramArr)
     .then(({ rows }) => {
         return rows
     })
