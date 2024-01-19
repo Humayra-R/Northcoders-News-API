@@ -1,6 +1,7 @@
 const { responseAllArticles, responseArticle, updateArticle, responseComments, insertComment } = require('../models/article-model')
 const { checkUser } = require('../models/utils/users-util')
 const { checkTopic } = require('../models/utils/topics-util')
+const { checkArticleId } = require('../models/utils/articles-util')
 
 function getAllArticles(req, res, next) {
     const { filter } = req.query
@@ -55,6 +56,7 @@ function getComments(req, res, next) {
     const { article_id } = req.params
 
     responseComments(article_id)
+    
     .then((comments) => {
         res.status(200).send({ comments })
     })
