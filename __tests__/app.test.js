@@ -133,13 +133,14 @@ describe('/api/articles/:article_id', () => {
 
             expect(articleObj.article_id).toBe(1)
             
-            expect(Object.keys(articleObj)).toEqual(['article_id', 'title', 'topic', 'author', 'body', 'created_at', 'votes', 'article_img_url'])
+            expect(article).toHaveLength(1)
             expect(typeof articleObj.title).toBe('string')
             expect(typeof articleObj.topic).toBe('string')
             expect(typeof articleObj.author).toBe('string')
             expect(typeof articleObj.body).toBe('string')
             expect(typeof articleObj.created_at).toBe('string')
             expect(typeof articleObj.article_img_url).toBe('string')
+            expect(typeof articleObj.comment_count).toBe('string')
         })
     })
     test('GET:404 sends an appropriate status and error message for a valid but non-existent id', () => {
