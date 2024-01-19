@@ -1,14 +1,28 @@
 const { responseAllArticles, responseArticle, updateArticle, responseComments, insertComment } = require('../models/article-model')
 const { checkUser } = require('../models/utils/users-util')
+const { checkTopic } = require('../models/utils/topics-util')
 
 function getAllArticles(req, res, next) {
-    responseAllArticles(req, res, next)
+    const { filter } = req.query
+    
+    if (!filter) { 
+        responseAllArticles()
+        .then((articles) => {
+            res.status(200).send({ articles })
+        })
+        .catch((err) => {
+            next(err)
+        })
+    }
+    else if (filter) {
+         checkTopic(filter)
     .then((articles) => {
-        res.status(200).send(articles)
+        res.status(200).send({ articles })
     })
     .catch((err) => {
         next(err)
     })
+    }
 }
 
 function getArticle(req, res, next) {
