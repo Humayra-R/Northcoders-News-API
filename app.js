@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const { getTopics } = require('./controllers/topics-controller')
 const { getAllEndpoints } = require('./controllers/all-endpoints-controller')
-const { getArticle, getAllArticles, getComments, postComment, patchArticle } = require('./controllers/article-controller')
+const { getArticle, getAllArticles, getComments, postComment, patchArticle } = require('./controllers/articles-controller')
 const { deleteComment } = require('./controllers/comments-controller')
 const { getUsers } = require('./controllers/users-controller')
 
@@ -42,7 +42,6 @@ app.use((err, req, res, next) => {
 
 app.use((err, req, res, next) => {
     res.status(500).send({ msg: 'Internal Server Error' })
-
   })
 
 module.exports = app

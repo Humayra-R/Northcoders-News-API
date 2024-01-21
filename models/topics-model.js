@@ -1,6 +1,6 @@
 const db = require('../db/connection')
 
-function responseTopics(req, res, next) {
+function responseTopics() {
     return db.query(`SELECT * FROM topics`)
 }
 

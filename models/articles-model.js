@@ -1,13 +1,13 @@
 const db = require('../db/connection')
 
-function responseAllArticles(filter = null) {
+function responseAllArticles(topic = null) {
     
     let queryStr = `SELECT articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id) AS comment_count FROM articles LEFT JOIN comments ON comments.article_id = articles.article_id `
  
    const paramArr = []
-    if (filter) {
+    if (topic) {
         queryStr += `WHERE topic = $1 `
-        paramArr.push(filter)
+        paramArr.push(topic)
     }
 
     queryStr += `GROUP BY articles.author, title, articles.article_id, topic, articles.created_at, articles.votes, article_img_url
@@ -24,9 +24,6 @@ function responseArticle(article_id) {
     return db.query(`SELECT articles.author, title, articles.article_id, topic, articles.body, articles.created_at, articles.votes, article_img_url, COUNT(comments.article_id) AS comment_count FROM articles LEFT JOIN comments ON comments.article_id = articles.article_id WHERE articles.article_id = $1 GROUP BY articles.author, title, articles.article_id, topic, articles.body, articles.created_at, articles.votes, article_img_url ORDER BY articles.created_at DESC`, [article_id])
 
     .then(({ rows }) => {
-        if (rows.length === 0) {
-            return Promise.reject({ status:404, msg: 'article does not exist' })
-    }
     return rows
 })
 }
@@ -38,9 +35,6 @@ function updateArticle({ inc_votes }, article_id) {
     }
     return db.query(`UPDATE articles SET votes = votes + $1 WHERE article_id = $2 RETURNING *`, [inc_votes, article_id])
     .then(({rows}) => {
-        if (rows.length === 0) {
-            return Promise.reject({status:400, msg: "Bad request"})
-        }
         return rows
     })
 }

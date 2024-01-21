@@ -67,7 +67,7 @@ describe('/api/articles', () => {
         })
     })
     test('GET:200 sends an array of articles to client if query is not provided', () => {
-        return request(app).get('/api/articles?filter =')
+        return request(app).get('/api/articles?topic =')
         .expect(200)
         .then(({ body:articlesObj }) => {
             const { articles } = articlesObj
@@ -88,7 +88,7 @@ describe('/api/articles', () => {
         })
     })
     test('GET:200 sends an array of articles to client filtered by topic', () => {
-        return request(app).get('/api/articles?filter=cats')
+        return request(app).get('/api/articles?topic=cats')
         .expect(200)
         .then(({ body }) => {
             const { articles } = body
@@ -107,23 +107,41 @@ describe('/api/articles', () => {
             })
         })
     })
-    test('GET: 400 sends an approrpriate status and error message if filter query is invalid', () => {
-        return request(app).get('/api/articles?filter=30')
-        .expect(400)
-        .then(({ body }) => {
-            expect(body.msg).toBe('Bad request')
-        })
-    })
-    test('GET:404 responds with an appropriate status and error message when topic is valid does not have associated articles', () => {
-        return request(app).get('/api/articles?filter=paper')
+    test('GET: 404 sends an approrpriate status and error message if topic does not exist', () => {
+        return request(app).get('/api/articles?topic=30')
         .expect(404)
         .then(({ body }) => {
-            expect(body.msg).toBe('no article found')
+            expect(body.msg).toBe('Topic does not exist')
+        })
+    })
+    test('GET:200 responds with an empty array when topic is valid does not have associated articles', () => {
+        return request(app).get('/api/articles?topic=paper')
+        .expect(200)
+        .then(({ body }) => {
+           expect(body.articles).toEqual([])
         })
     })
 })
 
 describe('/api/articles/:article_id', () => {
+    test('GET:200 sends one article object to the client', () => {
+        return request(app).get('/api/articles/1')
+        .expect(200)
+        .then(({ body }) => {
+            const { article } = body
+            const [ articleObj ] = article
+
+            expect(articleObj.article_id).toBe(1)
+            
+            expect(article).toHaveLength(1)
+            expect(typeof articleObj.title).toBe('string')
+            expect(typeof articleObj.topic).toBe('string')
+            expect(typeof articleObj.author).toBe('string')
+            expect(typeof articleObj.body).toBe('string')
+            expect(typeof articleObj.created_at).toBe('string')
+            expect(typeof articleObj.article_img_url).toBe('string')
+        })
+    })
     test('GET:200 sends one article object to the client', () => {
         return request(app).get('/api/articles/1')
         .expect(200)
@@ -147,7 +165,7 @@ describe('/api/articles/:article_id', () => {
         return request(app).get('/api/articles/20')
         .expect(404)
         .then(({ body }) => {
-            expect(body.msg).toBe('article does not exist')
+            expect(body.msg).toBe('Article does not exist')
         })
     })
     test('GET:400 sends an appropriate status and error message for an invalid id', () => {
@@ -196,6 +214,22 @@ describe('/api/articles/:article_id', () => {
             expect(body.msg).toBe('Bad request')
         })
     })
+    test('PATCH:404 responds with an appropriate status and error message for valid but non existent article id', () => {
+        return request(app).patch('/api/articles/555')
+        .send({inc_votes: 20})
+        .expect(404)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Article does not exist')
+        })
+    })
+    test('PATCH:400 responds with an appropriate status and error message for invalid article id', () => {
+        return request(app).patch('/api/articles/five')
+        .send({inc_votes: 50})
+        .expect(400)
+        .then(({ body }) => {
+            expect(body.msg).toBe('Bad request')
+        })
+    })
 })
 
 describe('/api/articles/:article_id/comments', () => {
@@ -231,7 +265,7 @@ describe('/api/articles/:article_id/comments', () => {
         return request(app).get('/api/articles/100/comments')
         .expect(404)
         .then(({ body }) => {
-            expect(body.msg).toBe('article does not exist')
+            expect(body.msg).toBe('Article does not exist')
         })
     })
     test('POST:201 inserts a new comment to the db and sends the new comment back to the client', () => {
@@ -262,6 +296,7 @@ describe('/api/articles/:article_id/comments', () => {
             order: 'Carnivora',
             suborder: 'feliformia'
         })
+        .expect(201)
         .then(({ body }) => {
             const { comment } = body
              const [ commentObj ] = comment
@@ -305,7 +340,7 @@ describe('/api/articles/:article_id/comments', () => {
         })
         .expect(404)
         .then(({ body }) => {
-            expect(body.msg).toBe('user not found')
+            expect(body.msg).toBe('User not found')
         })
     })
     test('POST: 404 responds with an appropriate status and error message for valid but non existent id', () => {
@@ -316,7 +351,7 @@ describe('/api/articles/:article_id/comments', () => {
         })
         .expect(404)
         .then(({ body }) => {
-            expect(body.msg).toBe('article does not exist')
+            expect(body.msg).toBe('Article does not exist')
         })
     })
     test('POST: 400 responds with an appropriate status and error message for invalid id', () => {
@@ -341,7 +376,7 @@ describe('/api/comments/:comment_id', () => {
           .delete('/api/comments/99')
           .expect(404)
           .then(({ body }) => {
-            expect(body.msg).toBe('comment does not exist');
+            expect(body.msg).toBe('Comment does not exist');
           });
       });
       test('DELETE:400 responds with an appropriate status and error message when given an invalid id', () => {
@@ -351,11 +386,6 @@ describe('/api/comments/:comment_id', () => {
           .then(({ body }) => {
             expect(body.msg).toBe('Bad request')
           })
-      })
-      test('DELETE:404 when path is non existent', () => {
-        return request(app)
-          .delete('/api/invalid/6')
-          .expect(404)
       })
 })
 

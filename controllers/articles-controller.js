@@ -1,12 +1,12 @@
-const { responseAllArticles, responseArticle, updateArticle, responseComments, insertComment } = require('../models/article-model')
+const { responseAllArticles, responseArticle, updateArticle, responseComments, insertComment } = require('../models/articles-model')
 const { checkUser } = require('../models/utils/users-util')
 const { checkTopic } = require('../models/utils/topics-util')
 const { checkArticleId } = require('../models/utils/articles-util')
 
 function getAllArticles(req, res, next) {
-    const { filter } = req.query
+    const { topic } = req.query
     
-    if (!filter) { 
+    if (!topic) { 
         responseAllArticles()
         .then((articles) => {
             res.status(200).send({ articles })
@@ -15,9 +15,12 @@ function getAllArticles(req, res, next) {
             next(err)
         })
     }
-    else if (filter) {
-         checkTopic(filter)
-    .then((articles) => {
+    else if (topic) {
+        const topicCheck = checkTopic(topic)
+        const selectedArticles = responseAllArticles(topic)
+        Promise.all([selectedArticles, topicCheck])    
+    .then((rows) => {
+        const articles = rows[0]
         res.status(200).send({ articles })
     })
     .catch((err) => {
@@ -28,9 +31,12 @@ function getAllArticles(req, res, next) {
 
 function getArticle(req, res, next) {
     const { article_id } = req.params
-
-    responseArticle(article_id)
-    .then((article) => {
+    
+    const checkArticle = checkArticleId(article_id)
+    const selectedArticle = responseArticle(article_id)
+    Promise.all([selectedArticle, checkArticle])
+    .then((rows) => {
+        const article = rows[0]
         res.status(200).send({ article })
     })
     .catch((err) => {
@@ -42,10 +48,12 @@ function patchArticle(req, res, next) {
     const { article_id } = req.params
     const  inc_votes  = req.body
 
-    updateArticle(inc_votes, article_id)
-    .then((updatedArticle) => {
-        
-        res.status(200).send( { updatedArticle })
+    const checkArticle = checkArticleId(article_id)
+    const articlePatched = updateArticle(inc_votes, article_id)
+    Promise.all([articlePatched, checkArticle])
+    .then((rows) => {
+        const updatedArticle = rows[0]
+        res.status(200).send({ updatedArticle })
     })
     .catch((err) => {
         next(err)
@@ -73,10 +81,10 @@ function postComment(req, res, next) {
     const { article_id } = req.params
     const comment = req.body
 
-    const articleCheck = responseArticle(article_id)
+    const checkArticle = checkArticleId(article_id)
     const userQuery = checkUser(comment)
     const uploadComment = insertComment(comment, article_id)
-    Promise.all([uploadComment, userQuery, articleCheck])
+    Promise.all([uploadComment, userQuery, checkArticle])
     .then((result) => {
         const comment = result[0]
         res.status(201).send({ comment })
