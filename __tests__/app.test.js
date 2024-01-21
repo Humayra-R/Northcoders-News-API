@@ -218,12 +218,12 @@ describe('/api/articles/:article_id/comments', () => {
             })
         })
     })
-    test('GET:200 sends an appropriate message when article_id does not have any comments', () => {
+    test('GET:200 sends an empty array when article_id does not have any comments', () => {
         return request(app).get('/api/articles/7/comments')
         .expect(200)
         .then(({ body }) => {
             const { comments } = body
-            expect(comments.msg).toBe('no comments found')
+            expect(comments).toEqual([])
         })
         
     })

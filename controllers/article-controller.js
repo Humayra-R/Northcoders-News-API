@@ -55,9 +55,12 @@ function patchArticle(req, res, next) {
 function getComments(req, res, next) {
     const { article_id } = req.params
 
-    responseComments(article_id)
+    const checkArticle = checkArticleId(article_id)
+    const selectedComments = responseComments(article_id)
     
-    .then((comments) => {
+    Promise.all([selectedComments, checkArticle])
+    .then((rows) => {
+        const comments = rows[0]
         res.status(200).send({ comments })
     })
     .catch((err) => {
