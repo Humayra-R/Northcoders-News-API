@@ -1,4 +1,4 @@
-NC News API
+**NC News API**
 
 Hosted Version (Render): https://nc-news-xrc9.onrender.com/api
 
