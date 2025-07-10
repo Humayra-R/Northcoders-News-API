@@ -1,5 +1,7 @@
 **NC News API**
 
+Due to termination of hosting service, endpoints are currently non-functional and will be updated once a suitable hosting service is selected.
+
 Hosted Version (Render): https://nc-news-xrc9.onrender.com/api
 
 NC News is a RESTful API intended to mimic the building of a real world backend service (e.g. Reddit) which provides information to the front end architecture called The Coders Correspondence.
